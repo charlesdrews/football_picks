@@ -36,7 +36,9 @@ for line in urllib2.urlopen(schedule_url):
         line = re.sub(r" at ", ",", line)     # replace " at " w/ ,
         line = re.sub(r"\n$", "", line)       # remove trailing newline
         line = line.split(",")
-        schedule[line[0]] = line[1]
+        # Ignore TBD schedule entries during playoffs
+        if line[0] != "TBD" and line[1] != "TBD":
+            schedule[line[0]] = line[1]
 
 # Read & parse offensive stats html, then save in dictionary
 offense_stats = {}
