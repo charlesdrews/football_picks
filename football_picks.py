@@ -24,13 +24,10 @@ def main():
 def define_urls():
     """Specify the URLs for the html that needs to be parsed."""
     schedule_url = "http://espn.go.com/nfl/schedule"
-    offense_stats_url = "http://espn.go.com/nfl/statistics/team/_/stat/total"
+    offense_stats_url = "http://espn.go.com/nfl/statistics/team/_/stat/total" \
+                        "/seasontype/2"
     defense_stats_url = "http://espn.go.com/nfl/statistics/team/_/stat/total" \
-                        "/position/defense"
-    # Temporarily use 2013 regular season stats instead of 2014 YTD
-    #offense_stats_url += "/year/2013"
-    #defense_stats_url += "/year/2013"
-    #print 'Using 2013 regular season stats, not 2014 YTD stats:\n'
+                        "/position/defense/seasontype/2"
     return schedule_url, offense_stats_url, defense_stats_url
 
 def parse_schedule(schedule_url):
@@ -94,10 +91,20 @@ def predict_winners(schedule, offense_stats, defense_stats):
     for key in keys:
         away_team = key
         home_team = schedule[key]
-        off_pts_1 = offense_stats[away_team]
-        off_pts_2 = offense_stats[home_team]
-        def_pts_1 = defense_stats[away_team]
-        def_pts_2 = defense_stats[home_team]
+        try:
+            off_pts_1 = offense_stats[away_team]
+            off_pts_2 = offense_stats[home_team]
+        except KeyError, e:
+            print "\nKey %s not found in dictionary offense_stats" % str(e)
+            print "Check the offense_stats_url value\n"
+            return
+        try:
+            def_pts_1 = defense_stats[away_team]
+            def_pts_2 = defense_stats[home_team]
+        except KeyError, e:
+            print "\nKey %s not found in dictionary defense_stats" % str(e)
+            print "Check the defense_stats_url value\n"
+            return
         print (away_team + ' (' + str(off_pts_1) + ', ' + str(def_pts_1) + ') at '
                 + home_team + ' (' + str(off_pts_2) + ', ' + str(def_pts_2) + ')')
         outcome = off_pts_1 - off_pts_2 + def_pts_2 - def_pts_1
