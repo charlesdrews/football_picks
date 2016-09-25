@@ -31,6 +31,7 @@ def main():
 
 def parse_schedule():
     """Read & parse schedule html, then save pairings in dictionary."""
+    print 'Retrieving schedule...'
     schedule = {}
 
     html_response = requests.get(SCHEDULE_URL).text
@@ -58,6 +59,7 @@ def get_team_from_cell(cell):
 
 def parse_offense_stats():
     """Read & parse offensive stats html, then save in dictionary."""
+    print 'Retrieving offensive stats...'
     offense_stats = {}
 
     html_response = requests.get(OFFENSE_STATS_URL).text
@@ -75,6 +77,7 @@ def parse_offense_stats():
 
 def parse_defense_stats():
     """Read & parse defensive stats html, then save in dictionary."""
+    print 'Retrieving defensive stats...'
     defense_stats = {}
 
     html_response = requests.get(DEFENSE_STATS_URL).text
@@ -92,28 +95,29 @@ def parse_defense_stats():
 
 def predict_winners(schedule, offense_stats, defense_stats):
     """Predict winner for each matchup, including margin of victory."""
+    print 'Picks:'
+
     keys = schedule.keys()
     keys.sort()
     for key in keys:
         away_team = key
         home_team = schedule[key]
+
         try:
-            off_pts_1 = offense_stats[away_team]
-            off_pts_2 = offense_stats[home_team]
+            away_pts_scored = offense_stats[away_team]
+            home_pts_scored = offense_stats[home_team]
         except KeyError, e:
-            print "\nKey %s not found in dictionary offense_stats" % str(e)
-            print "Check the offense_stats_url value\n"
+            print 'Error: Key {} not found in dictionary offense_stats'.format(str(e))
             return
+
         try:
-            def_pts_1 = defense_stats[away_team]
-            def_pts_2 = defense_stats[home_team]
+            away_pts_allowed = defense_stats[away_team]
+            home_pts_allowed = defense_stats[home_team]
         except KeyError, e:
-            print "\nKey %s not found in dictionary defense_stats" % str(e)
-            print "Check the defense_stats_url value\n"
+            print 'Error: Key {} not found in dictionary defense_stats'.format(str(e))
             return
-        print (away_team + ' (' + str(off_pts_1) + ', ' + str(def_pts_1) + ') at '
-               + home_team + ' (' + str(off_pts_2) + ', ' + str(def_pts_2) + ')')
-        outcome = off_pts_1 - off_pts_2 + def_pts_2 - def_pts_1
+
+        outcome = away_pts_scored - home_pts_scored + home_pts_allowed - away_pts_allowed
         if outcome < 0:
             # If outcome is negative, then home_team is picked
             winner = home_team
@@ -121,7 +125,12 @@ def predict_winners(schedule, offense_stats, defense_stats):
         else:
             winner = away_team
             margin = outcome
-        print '    pick: ' + winner + ' by ' + str(margin) + '\n'
+
+        away = '{} ({:.1f}, {:.1f})'.format(away_team, away_pts_scored, away_pts_allowed)
+        home = '{} ({:.1f}, {:.1f})'.format(home_team, home_pts_scored, home_pts_allowed)
+        pick = '{} by {:.1f}'.format(winner, margin)
+
+        print '\n{:30}@     {:30}->     {}'.format(away, home, pick)
 
 
 if __name__ == "__main__":
