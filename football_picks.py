@@ -38,7 +38,8 @@ def parse_schedule():
     soup = BeautifulSoup(html_response, 'html.parser')
 
     for table in soup.find_all('tbody'):
-        for row in table.find_all('tr'):
+        #for row in table.find_all('tr'):
+        for row in table.find_all('tr', 'has-results'):
             cells = row.find_all('td')
             away_team = get_team_from_cell(cells[0])
             home_team = get_team_from_cell(cells[1])
