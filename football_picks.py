@@ -38,8 +38,8 @@ def parse_schedule():
     soup = BeautifulSoup(html_response, 'html.parser')
 
     for table in soup.find_all('tbody'):
-        #for row in table.find_all('tr'):
-        for row in table.find_all('tr', 'has-results'):
+        for row in table.find_all('tr'):
+        #for row in table.find_all('tr', 'has-results'):
             cells = row.find_all('td')
             away_team = get_team_from_cell(cells[0])
             home_team = get_team_from_cell(cells[1])
@@ -55,6 +55,11 @@ def get_team_from_cell(cell):
             team = 'NY Giants'
         else:
             team = 'NY Jets'
+    elif team == 'Los Angeles':
+        if cell.find('abbr').string == 'LAR':
+            team = 'LA Rams'
+        else:
+            team = 'LA Chargers'
     return team
 
 
@@ -109,14 +114,14 @@ def predict_winners(schedule, offense_stats, defense_stats):
             home_pts_scored = offense_stats[home_team]
         except KeyError, e:
             print 'Error: Key {} not found in dictionary offense_stats'.format(str(e))
-            return
+            continue
 
         try:
             away_pts_allowed = defense_stats[away_team]
             home_pts_allowed = defense_stats[home_team]
         except KeyError, e:
             print 'Error: Key {} not found in dictionary defense_stats'.format(str(e))
-            return
+            continue
 
         outcome = away_pts_scored - home_pts_scored + home_pts_allowed - away_pts_allowed
         if outcome < 0:
